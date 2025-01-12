@@ -1,0 +1,19 @@
+# Binaries
+bin/*
+
+# Go module files
+go.sum
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+tmp/*
+*.tmp
+*.temp
