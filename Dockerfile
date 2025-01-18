@@ -1,8 +1,9 @@
 FROM golang:1.23 as builder
-WORKDIR /app
 COPY go.* /app
 RUN go mod download
 COPY . .
+
+WORKDIR /app
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -a \
