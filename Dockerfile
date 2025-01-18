@@ -1,8 +1,10 @@
 FROM golang:1.23 as builder
-COPY . /app
+
+COPY . app
+
 RUN go mod download
 
-WORKDIR /app
+WORKDIR ./app
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -a \
@@ -10,5 +12,6 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   -o ./bin/ ./cmd/telegram
 
 FROM scratch as runtime 
-COPY --from=builder /app/bin/* /app/
+WORKDIR /app
+COPY --from=builder ./bin/* ./app/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
