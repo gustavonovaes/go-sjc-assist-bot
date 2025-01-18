@@ -4,10 +4,8 @@ COPY go.* /app
 RUN go mod download
 COPY . .
 
-RUN pwd
-
-RUN ls -al
-
+RUN mkdir -p /app/bin
+RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -a \
   # -ldflags "-s -w -X main.version=$(git describe --tags --always --dirty 2>/dev/null || echo 'v0.0.0')" \
