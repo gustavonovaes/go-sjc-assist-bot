@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram/cetesb"
@@ -26,17 +27,25 @@ var COMMANDS = map[string]telegram.Command{
 }
 
 func main() {
-	err := telegram.SetupWebhook()
-	if err != nil {
-		log.Fatalf("ERROR: Fail to setup webhook: %v", err)
-	}
-
 	server := http.NewServeMux()
 	server.HandleFunc(URL_PATH, func(w http.ResponseWriter, r *http.Request) {
 		telegram.HandleWebhook(w, r, COMMANDS)
 	})
 
+	go func() {
+		<-time.After(5 * time.Second)
+		err := telegram.SetupWebhook()
+		if err != nil {
+			log.Fatalf("ERROR: Fail to setup webhook: %v", err)
+		}
+	}()
+
 	listenWithGracefulShutdown(ADDR, server)
+
+	err := telegram.SetupWebhook()
+	if err != nil {
+		log.Fatalf("ERROR: Fail to setup webhook: %v", err)
+	}
 }
 
 func listenWithGracefulShutdown(addr string, server http.Handler) {
