@@ -44,22 +44,19 @@ func SetupWebhook() error {
 	return nil
 }
 
-func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]Command) {
-	log.Println("Handling webhook")
+func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]Command) error {
 	w.WriteHeader(http.StatusOK)
 
 	var webhookResponse WebhookResponse
 
 	if err := json.NewDecoder(r.Body).Decode(&webhookResponse); err != nil {
-		log.Println("Failed to decode request body")
-		return
+		return fmt.Errorf("failed to decode request body: %v", err)
 	}
 
 	log.Printf("Received message: %+v", webhookResponse.Message)
 
 	if len(commands) == 0 {
 		log.Println("No commands available")
-		return
 	}
 
 	for command, handler := range commands {
@@ -70,12 +67,13 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 				command,
 			)
 			handler(webhookResponse.Message)
-			return
 		}
 	}
+
+	return nil
 }
 
-func SendMessage(chatID int, message string) {
+func SendMessage(chatID int, message string) error {
 	res, err := http.Post(
 		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/sendMessage",
 		"application/json",
@@ -83,13 +81,13 @@ func SendMessage(chatID int, message string) {
 	)
 
 	if err != nil {
-		log.Println("Failed to send message")
-		return
+		return fmt.Errorf("failed to send message: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		log.Println("Failed to send message")
-		return
+		return fmt.Errorf("failed to send message, status code: %d", res.StatusCode)
 	}
+
+	return nil
 }
