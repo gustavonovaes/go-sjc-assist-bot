@@ -27,13 +27,15 @@ var COMMANDS = map[string]telegram.Command{
 }
 
 func main() {
+
 	server := http.NewServeMux()
 	server.HandleFunc(URL_PATH, func(w http.ResponseWriter, r *http.Request) {
 		telegram.HandleWebhook(w, r, COMMANDS)
 	})
 
 	go func() {
-		<-time.After(5 * time.Second)
+		<-time.After(10 * time.Second)
+		log.Println("INFO: Setting up webhook...")
 		err := telegram.SetupWebhook()
 		if err != nil {
 			log.Fatalf("ERROR: Fail to setup webhook: %v", err)
