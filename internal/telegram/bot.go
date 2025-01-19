@@ -48,13 +48,16 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 	log.Println("Handling webhook")
 	w.WriteHeader(http.StatusOK)
 
-	var webhookMessage WebhookMessage
-	if err := json.NewDecoder(r.Body).Decode(&webhookMessage); err != nil {
+	var webhookResponse struct {
+		message WebhookMessage `json:"message"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&webhookResponse); err != nil {
 		log.Println("Failed to decode request body")
 		return
 	}
 
-	log.Printf("Received message: %+v", webhookMessage)
+	log.Printf("Received message: %+v", webhookResponse.message)
 
 	if len(commands) == 0 {
 		log.Println("No commands available")
@@ -62,9 +65,13 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 	}
 
 	for command, handler := range commands {
-		if strings.Contains(webhookMessage.Text, command) {
-			log.Printf("User %s requested command %s", webhookMessage.From.Username, command)
-			handler(webhookMessage)
+		if strings.Contains(webhookResponse.message.Text, command) {
+			log.Printf(
+				"User %s requested command %s",
+				webhookResponse.message.From.Username,
+				command,
+			)
+			handler(webhookResponse.message)
 			return
 		}
 	}
