@@ -14,10 +14,10 @@ Comandos disponíveis:
 /cetesb:qualidade-ar - Exibe a qualidade do ar na cidade
 	`
 
-	SendMessage(message.MessageID, text)
+	SendMessage(message.Chat.ID, text)
 }
 
 func CommandAbout(message WebhookMessage) {
 	text := `Este bot foi desenvolvido por https://GustavoNovaes.dev, para ajudar a população de São José dos Campos a obter informações sobre a cidade de forma facilitada e automatizada a partir dos serviços de chat Telegram e Discord.`
-	SendMessage(message.MessageID, text)
+	SendMessage(message.Chat.ID, text)
 }
