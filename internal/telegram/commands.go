@@ -13,7 +13,7 @@ Comandos disponíveis:
 /sobre - Exibe informações sobre o bot
 
 # CETESB
-/cetesb:qualidade-ar - Exibe a qualidade do ar na cidade
+/cetesb-qualidade-ar - Exibe a qualidade do ar na cidade
 	`
 
 	err := SendMessage(message.Chat.ID, text)

@@ -23,7 +23,7 @@ var COMMANDS = map[string]telegram.Command{
 	"/sobre": telegram.CommandAbout,
 
 	// cetesb
-	"/cetesb:qualidade-ar": cetesb.CommandQualidadeAr,
+	"/cetesb-qualidade-ar": cetesb.CommandQualidadeAr,
 }
 
 func main() {
