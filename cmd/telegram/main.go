@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram"
-	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram/cetesb"
 )
 
 const (

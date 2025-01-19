@@ -3,26 +3,24 @@ package cetesb
 import (
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 
-	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram"
 )
 
 const SJC_QUALAR_STATION_ID = 49
 
 func CommandQualidadeAr(message telegram.WebhookMessage) {
-	commandToken := strings.Split(message.Text, " ")[1]
-	commandCityId, _ := strconv.Atoi(commandToken)
+	// commandToken := strings.Split(message.Text, " ")[1]
+	// commandCityId, _ := strconv.Atoi(commandToken)
 
-	if commandCityId == 0 {
-		commandCityId = SJC_QUALAR_STATION_ID
-	}
+	// if commandCityId == 0 {
+	// 	commandCityId = SJC_QUALAR_STATION_ID
+	// }
 
-	res, err := cetesb.GetQualarData(SJC_QUALAR_STATION_ID)
+	res, err := GetQualarData(SJC_QUALAR_STATION_ID)
 	if err != nil {
-		telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB")
+		// telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB")
+		log.Printf("Erro ao obter dados da CETESB: %v", err)
 		return
 	}
 
