@@ -2,6 +2,7 @@ package cetesb
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -24,6 +25,8 @@ func CommandQualidadeAr(message telegram.WebhookMessage) {
 		telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB")
 		return
 	}
+
+	log.Printf("Res: %v", res)
 
 	telegram.SendMessage(
 		message.Chat.ID,
