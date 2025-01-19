@@ -35,19 +35,15 @@ func main() {
 
 	go func() {
 		<-time.After(10 * time.Second)
-		log.Println("INFO: Setting up webhook...")
 		err := telegram.SetupWebhook()
 		if err != nil {
 			log.Fatalf("ERROR: Fail to setup webhook: %v", err)
 		}
+
+		log.Println("INFO: Webhook setup successfully")
 	}()
 
 	listenWithGracefulShutdown(ADDR, server)
-
-	err := telegram.SetupWebhook()
-	if err != nil {
-		log.Fatalf("ERROR: Fail to setup webhook: %v", err)
-	}
 }
 
 func listenWithGracefulShutdown(addr string, server http.Handler) {
