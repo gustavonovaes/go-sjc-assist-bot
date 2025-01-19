@@ -54,6 +54,8 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 		return
 	}
 
+	log.Printf("Received message: %+v", webhookMessage)
+
 	if len(commands) == 0 {
 		log.Println("No commands available")
 		return
