@@ -8,10 +8,22 @@ import (
 	"syscall"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram/cetesb"
 )
 
-const URL_PATH = "/telegram"
-const ADDR = ":8080"
+const (
+	URL_PATH = "/"
+	ADDR     = ":443"
+)
+
+var COMMANDS = map[string]telegram.Command{
+	"/start": telegram.CommandStart,
+	"/ajuda": telegram.CommandStart,
+	"/sobre": telegram.CommandAbout,
+
+	// cetesb
+	"/cetesb:qualidade-ar": cetesb.CommandQualidadeAr,
+}
 
 func main() {
 	err := telegram.SetupWebhook()
@@ -20,7 +32,9 @@ func main() {
 	}
 
 	server := http.NewServeMux()
-	server.HandleFunc(URL_PATH, telegram.HandleWebhook)
+	server.HandleFunc(URL_PATH, func(w http.ResponseWriter, r *http.Request) {
+		telegram.HandleWebhook(w, r, COMMANDS)
+	})
 
 	listenWithGracefulShutdown(ADDR, server)
 }

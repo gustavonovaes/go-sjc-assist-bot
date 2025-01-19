@@ -2,28 +2,26 @@
 package telegram
 
 import (
-	"crypto/rand"
+	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/pkg/config"
 )
 
 var (
-	appConfig          config.Config
-	webhookSecretToken string
+	appConfig config.Config
 )
 
 func init() {
-	webhookSecretToken = randomString(32)
 	appConfig = config.New()
 }
 
 func SetupWebhook() error {
 	res, err := http.Post(
-		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/setWebhook?url="+appConfig.TELEGRAM_WEBHOOK_URL+"&secret_token="+webhookSecretToken,
+		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/setWebhook?url="+appConfig.TELEGRAM_WEBHOOK_URL,
 		"application/json",
 		nil,
 	)
@@ -46,27 +44,45 @@ func SetupWebhook() error {
 	return nil
 }
 
-func HandleWebhook(w http.ResponseWriter, r *http.Request) {
+func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]Command) {
 	log.Println("Handling webhook")
 	w.WriteHeader(http.StatusOK)
 
-	requestSecretToken := r.Header.Get("X-Telegram-Bot-Api-Secret-Token")
-	if requestSecretToken != webhookSecretToken {
-		log.Println("Invalid secret token")
+	var webhookMessage WebhookMessage
+	if err := json.NewDecoder(r.Body).Decode(&webhookMessage); err != nil {
+		log.Println("Failed to decode request body")
 		return
 	}
 
-	content, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Println("Failed to read request body")
+	if len(commands) == 0 {
+		log.Println("No commands available")
 		return
 	}
 
-	log.Println("Request body: ", string(content))
+	for command, handler := range commands {
+		if strings.Contains(webhookMessage.Text, command) {
+			log.Printf("User %s requested command %s", webhookMessage.From.Username, command)
+			handler(webhookMessage)
+			return
+		}
+	}
 }
 
-func randomString(length int) string {
-	b := make([]byte, length+2)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)[2 : length+2]
+func SendMessage(chatID int, message string) {
+	res, err := http.Post(
+		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/sendMessage",
+		"application/json",
+		nil,
+	)
+
+	if err != nil {
+		log.Println("Failed to send message")
+		return
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		log.Println("Failed to send message")
+		return
+	}
 }
