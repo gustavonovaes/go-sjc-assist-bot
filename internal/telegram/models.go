@@ -25,3 +25,7 @@ type WebhookMessage struct {
 		Type   string `json:"type"`
 	} `json:"entities"`
 }
+
+type WebhookResponse struct {
+	Message WebhookMessage `json:"message"`
+}
