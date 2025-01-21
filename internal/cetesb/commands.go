@@ -14,8 +14,11 @@ func CommandQualidadeAr(message telegram.WebhookMessage) error {
 	commandCityId := extractCityId(message.Text)
 	res, err := GetQualarData(commandCityId)
 	if err != nil {
-		telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB")
-		return fmt.Errorf("failed to get data from CETESB: %v", err)
+		return fmt.Errorf(
+			"failed to get data from CETESB: %v\n Telegram response result: %v",
+			err,
+			telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB"),
+		)
 	}
 
 	return telegram.SendMessage(
