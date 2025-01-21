@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/pkg/config"
@@ -51,7 +52,9 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 	}
 	r.Body.Close()
 
-	log.Printf("Received message: %+v", webhookResponse.Message)
+	if os.Getenv("DEBUG") == "true" {
+		log.Printf("Received message: %+v", webhookResponse.Message)
+	}
 
 	if len(commands) == 0 {
 		log.Println("No commands available")
