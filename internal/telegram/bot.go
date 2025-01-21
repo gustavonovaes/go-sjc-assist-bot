@@ -45,14 +45,11 @@ func SetupWebhook() error {
 }
 
 func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]Command) error {
-	w.WriteHeader(http.StatusOK)
-
 	var webhookResponse WebhookResponse
-
 	if err := json.NewDecoder(r.Body).Decode(&webhookResponse); err != nil {
 		return fmt.Errorf("failed to decode request body: %v", err)
 	}
-	defer r.Body.Close()
+	r.Body.Close()
 
 	log.Printf("Received message: %+v", webhookResponse.Message)
 
@@ -72,6 +69,7 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 		}
 	}
 
+	w.WriteHeader(http.StatusOK)
 	return nil
 }
 
