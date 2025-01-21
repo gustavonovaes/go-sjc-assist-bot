@@ -28,9 +28,9 @@ func CommandQualidadeAr(message telegram.WebhookMessage) error {
 			res.Features[0].Attributes.Nome,
 			res.Features[0].Attributes.Indice,
 			res.Features[0].Attributes.Qualidade,
-			"		0-40 	- Boa, 				41-80 - Moderada, \n"+
-				"	 81-120 - Ruim,  		 121-200 - Muito Ruim,\n"+
-				" 	 >200 - Péssima\n"+
+			"	  0-40  - Boa,        41-80  - Moderada, \n"+
+				"	 81-120 - Ruim,      121-200 - Muito Ruim,\n"+
+				"    >200 - Péssima\n"+
 				"\n",
 		),
 	)
