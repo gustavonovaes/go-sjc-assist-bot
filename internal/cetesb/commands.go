@@ -11,14 +11,8 @@ import (
 const SJC_QUALAR_STATION_ID = 49
 
 func CommandQualidadeAr(message telegram.WebhookMessage) error {
-	commandToken := strings.Split(message.Text, " ")[1]
-	commandCityId, _ := strconv.Atoi(commandToken)
-
-	if commandCityId == 0 {
-		commandCityId = SJC_QUALAR_STATION_ID
-	}
-
-	res, err := GetQualarData(SJC_QUALAR_STATION_ID)
+	commandCityId := extractCityId(message.Text)
+	res, err := GetQualarData(commandCityId)
 	if err != nil {
 		telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB")
 		return fmt.Errorf("failed to get data from CETESB: %v", err)
@@ -32,4 +26,20 @@ func CommandQualidadeAr(message telegram.WebhookMessage) error {
 			res.Features[0].Attributes.Indice,
 		),
 	)
+}
+
+func extractCityId(message string) int {
+	commandTokens := strings.Split(message, " ")
+
+	var commandCityId int
+	if len(commandTokens) < 2 {
+		commandCityId = SJC_QUALAR_STATION_ID
+	} else {
+		commandCityId, _ = strconv.Atoi(commandTokens[1])
+		if commandCityId == 0 {
+			commandCityId = SJC_QUALAR_STATION_ID
+		}
+	}
+
+	return commandCityId
 }
