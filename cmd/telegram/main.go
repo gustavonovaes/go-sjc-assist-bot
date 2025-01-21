@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	URL_PATH = "/"
-	ADDR     = ":443"
+	URL_PATH              = "/"
+	ADDR                  = ":443"
+	TIMEOUT_SETUP_WEBHOOK = 10 * time.Second
 )
 
 var COMMANDS = map[string]telegram.Command{
@@ -23,18 +24,17 @@ var COMMANDS = map[string]telegram.Command{
 	"/sobre": telegram.CommandAbout,
 
 	// cetesb
-	"/cetesb-qualidade-ar": cetesb.CommandQualidadeAr,
+	"/cetesb": cetesb.CommandQualidadeAr,
 }
 
 func main() {
-
 	server := http.NewServeMux()
 	server.HandleFunc(URL_PATH, func(w http.ResponseWriter, r *http.Request) {
 		telegram.HandleWebhook(w, r, COMMANDS)
 	})
 
 	go func() {
-		<-time.After(10 * time.Second)
+		<-time.After(TIMEOUT_SETUP_WEBHOOK)
 		err := telegram.SetupWebhook()
 		if err != nil {
 			log.Fatalf("ERROR: Fail to setup webhook: %v", err)
