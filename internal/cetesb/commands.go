@@ -2,7 +2,6 @@ package cetesb
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 
 const SJC_QUALAR_STATION_ID = 49
 
-func CommandQualidadeAr(message telegram.WebhookMessage) {
+func CommandQualidadeAr(message telegram.WebhookMessage) error {
 	commandToken := strings.Split(message.Text, " ")[1]
 	commandCityId, _ := strconv.Atoi(commandToken)
 
@@ -21,12 +20,11 @@ func CommandQualidadeAr(message telegram.WebhookMessage) {
 
 	res, err := GetQualarData(SJC_QUALAR_STATION_ID)
 	if err != nil {
-		// telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB")
-		log.Printf("Erro ao obter dados da CETESB: %v", err)
-		return
+		telegram.SendMessage(message.Chat.ID, "Erro ao obter dados da CETESB")
+		return fmt.Errorf("failed to get data from CETESB: %v", err)
 	}
 
-	telegram.SendMessage(
+	return telegram.SendMessage(
 		message.Chat.ID,
 		fmt.Sprintf(
 			"Nome: %s\nIndice qualidade do Ar: %f",
