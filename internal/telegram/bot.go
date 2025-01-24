@@ -68,14 +68,11 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 				command,
 			)
 
-			err := handler(webhookResponse.Message)
-			if err != nil {
+			if err := handler(webhookResponse.Message); err != nil {
 				log.Printf("Failed to execute command %s: %v", command, err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return err
 			}
-
-			break
 		}
 	}
 
