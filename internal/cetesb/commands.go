@@ -24,11 +24,13 @@ func CommandQualidadeAr(message telegram.WebhookMessage) error {
 	return telegram.SendMessage(
 		message.Chat.ID,
 		fmt.Sprintf(
-			"**Nome:** %s\n**Indice qualidade do Ar:** %.0f - %s\n\n%s\n",
+			`<b>Nome:</b>\n%s\n
+			 <b>Indice qualidade do Ar:</b>\n%.0f - %s\n
+			 %s\n`,
 			res.Features[0].Attributes.Nome,
 			res.Features[0].Attributes.Indice,
 			res.Features[0].Attributes.Qualidade,
-			"<code>[ 0-40: Boa / 41-80: Moderada / 81-120: Ruim / 121-200: Muito Ruim / >200: Péssima ]</code>\n",
+			"<quote>[ 0-40: Boa / 41-80: Moderada / 81-120: Ruim / 121-200: Muito Ruim / >200: Péssima ]</quote>\n",
 		),
 	)
 }

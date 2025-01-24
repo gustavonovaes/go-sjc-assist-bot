@@ -87,7 +87,11 @@ func SendMessage(chatID int, message string) error {
 	res, err := http.Post(
 		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/sendMessage",
 		"application/json",
-		strings.NewReader(fmt.Sprintf(`{"chat_id": %d, "text": "%s"}`, chatID, message)),
+		strings.NewReader(fmt.Sprintf(`{
+			"chat_id": %d, 
+			"text": "%s",
+			"parse_mode": "HTML"
+		}`, chatID, message)),
 	)
 
 	if err != nil {
