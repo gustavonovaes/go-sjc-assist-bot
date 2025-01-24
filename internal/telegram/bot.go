@@ -100,7 +100,7 @@ func SendMessage(chatID int, message string) error {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send message, status code: %d", res.StatusCode)
+		return fmt.Errorf("failed to send message, status code: %d\n%v", res.StatusCode, res.Body)
 	}
 
 	return nil
