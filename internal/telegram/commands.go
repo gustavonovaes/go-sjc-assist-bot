@@ -10,8 +10,11 @@ Comandos disponíveis:
 /start, /ajuda - Inicia a conversa com o assistente
 /sobre - Exibe informações sobre o bot
 
-# CETESB
-/cetesb - Exibe a qualidade do ar na cidade
+<b>CETESB</b>
+/qualidadeAr - Exibe a qualidade do ar na cidade
+
+<b>SSP-SP</b>
+/crimes - Exibe os crimes registrados na cidade
 	`
 
 	return SendMessage(message.Chat.ID, text)

@@ -62,6 +62,10 @@ func GetPoliceIncidentsCriminalDetailed(
 		return nil, fmt.Errorf("error fetching data")
 	}
 
+	if len(data.Data) == 0 {
+		return nil, fmt.Errorf("no data found")
+	}
+
 	return data.Data[0].ListaDados, nil
 }
 

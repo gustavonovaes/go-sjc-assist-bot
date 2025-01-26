@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image/png"
 	"os"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
@@ -21,17 +22,41 @@ func main() {
 	switch *service {
 	case "cetesb":
 		serviceCetesb(*cityId)
-		os.Exit(0)
 
 	case "sspsp":
-		serviceSspsp(*year, *municipalityId, *detailed, *location)
-		os.Exit(0)
+		assertFlag(
+			*municipalityId == 0,
+			"Municipality ID is required",
+			"-service sspsp -municipality_id <municipality_id> [-detailed]",
+		)
+
+		if *detailed {
+			assertFlag(
+				*year == 0,
+				"Year is required when using detailed",
+				"-service sspsp -municipality_id <municipality_id> -detailed -year <year>",
+			)
+
+			serviceSSPSPDetailed(*year, *municipalityId, *detailed, *location)
+		} else {
+			serviceSSPSP(*year, *municipalityId)
+		}
 
 	default:
 		fmt.Printf("Usage: %s -service <sspsp|cetesb>\n", os.Args[0])
 	}
 
 	os.Exit(0)
+}
+
+func assertFlag(condition bool, message, usage string) {
+	if !condition {
+		return
+	}
+
+	fmt.Println(message)
+	fmt.Printf("Usage: %s %s", os.Args[0], usage)
+	os.Exit(1)
 }
 
 func serviceCetesb(cityId int) {
@@ -56,36 +81,7 @@ func serviceCetesb(cityId int) {
 	fmt.Printf("Indice qualidade do Ar: %f\n", data.Features[0].Attributes.Indice)
 }
 
-func serviceSspsp(year int, municipalityId int, detailed bool, location bool) {
-	if municipalityId == 0 {
-		fmt.Println("Municipality ID is required")
-		fmt.Printf(
-			"Usage: %s -service sspsp -municipality_id <municipality_id> [-detailed]",
-			os.Args[0],
-		)
-		os.Exit(1)
-	}
-
-	if !detailed {
-		data, err := sspsp.GetPoliceIncidentsCriminal(municipalityId)
-		if err != nil {
-			fmt.Printf("Error fetching: %v\n", err)
-			os.Exit(1)
-		}
-
-		fmt.Printf("%+v", data)
-		return
-	}
-
-	if year == 0 {
-		fmt.Println("Year is required when using detailed")
-		fmt.Printf(
-			"Usage: %s -service sspsp -municipality_id <municipality_id> -detailed -year <year>",
-			os.Args[0],
-		)
-		os.Exit(1)
-	}
-
+func serviceSSPSPDetailed(year int, municipalityId int, detailed bool, location bool) {
 	if location {
 		data, err := sspsp.GetPoliceIncidentsByLocation(year)
 		if err != nil {
@@ -103,5 +99,31 @@ func serviceSspsp(year int, municipalityId int, detailed bool, location bool) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%+v", data)
+	fmt.Println(sspsp.GenerateCrimeStatisticsDetailedTable(data))
+}
+
+func serviceSSPSP(year int, municipalityId int) {
+	if municipalityId == 0 {
+		fmt.Println("Municipality ID is required")
+		fmt.Printf(
+			"Usage: %s -service sspsp -municipality_id <municipality_id> [-detailed]",
+			os.Args[0],
+		)
+		os.Exit(1)
+	}
+
+	data, err := sspsp.GetPoliceIncidentsCriminal(municipalityId)
+	if err != nil {
+		fmt.Printf("Error fetching: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println(sspsp.GenerateCrimeStatisticsTable(data[:10]))
+
+	img := sspsp.GenerateCrimeStatisticsImage(600, 300, data[:10])
+	f, _ := os.Create("crime_statistics.png")
+	defer f.Close()
+	png.Encode(f, img)
+
+	return
 }

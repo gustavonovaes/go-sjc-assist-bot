@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/sspsp"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram"
+	"gustavonovaes.dev/go-sjc-assist-bot/pkg/mongodb"
 )
 
 const (
@@ -24,7 +26,10 @@ var COMMANDS = map[string]telegram.Command{
 	"/sobre": telegram.CommandAbout,
 
 	// cetesb
-	"/cetesb": cetesb.CommandQualidadeAr,
+	"/qualidadeAr": cetesb.CommandQualidadeAr,
+
+	// sspsp
+	"/crimes": sspsp.CommandCrimes,
 }
 
 func main() {
@@ -33,6 +38,7 @@ func main() {
 		telegram.HandleWebhook(w, r, COMMANDS)
 	})
 
+	// Calls Telegram API to setup webhook after a timeout
 	go func() {
 		<-time.After(TIMEOUT_SETUP_WEBHOOK)
 		err := telegram.SetupWebhook()
@@ -43,6 +49,7 @@ func main() {
 		log.Println("INFO: Webhook setup successfully")
 	}()
 
+	// Start the server and listen for shutdown signals to ensure graceful termination of the server
 	listenWithGracefulShutdown(ADDR, server)
 }
 
@@ -61,7 +68,10 @@ func listenWithGracefulShutdown(addr string, server http.Handler) {
 	<-stopChan
 	log.Println("INFO: Shutting down server...")
 
-	// Add your cleanup code here
+	log.Println("INFO: Disconnecting DB...")
+	if err := mongodb.Close(); err != nil {
+		panic(err)
+	}
 
 	log.Println("INFO: Server gracefully stopped")
 }

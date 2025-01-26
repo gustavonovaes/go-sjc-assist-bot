@@ -9,6 +9,7 @@ type Config struct {
 	TELEGRAM_WEBHOOK_URL string `required:"true"`
 
 	MONGODB_URI string `required:"true"`
+	DB_NAME     string `required:"true" default:"sjc-assist-bot"`
 }
 
 func New() Config {
