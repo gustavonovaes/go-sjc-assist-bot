@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/sspsp"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram"
@@ -35,7 +37,7 @@ var COMMANDS = map[string]telegram.Command{
 func main() {
 	server := http.NewServeMux()
 	server.HandleFunc(URL_PATH, func(w http.ResponseWriter, r *http.Request) {
-		telegram.HandleWebhook(w, r, COMMANDS)
+		telegram.HandleWebhook(w, r, COMMANDS, logUserActivity)
 	})
 
 	// Calls Telegram API to setup webhook after a timeout
@@ -51,6 +53,20 @@ func main() {
 
 	// Start the server and listen for shutdown signals to ensure graceful termination of the server
 	listenWithGracefulShutdown(ADDR, server)
+}
+
+func logUserActivity(wr telegram.WebhookResponse) {
+	_, err := mongodb.GetCollection("activities").InsertOne(context.Background(), &bson.M{
+		"chat_id":   wr.Message.Chat.ID,
+		"user_id":   wr.Message.From.ID,
+		"username":  wr.Message.From.Username,
+		"message":   wr.Message.Text,
+		"timestamp": time.Now(),
+	})
+
+	if err != nil {
+		log.Printf("ERROR: Fail to insert activity: %v", err)
+	}
 }
 
 func listenWithGracefulShutdown(addr string, server http.Handler) {
