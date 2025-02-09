@@ -137,53 +137,77 @@ func SendMessage(chatID int, message string) error {
 	return nil
 }
 
-func SendPhoto(chatID int, image image.Image) error {
-	tempFilepath := fmt.Sprintf(
-		"%s/assist-bot-photo_%d_%d.png",
-		os.TempDir(),
-		chatID,
-		time.Now().Unix(),
-	)
-
-	f, err := os.Create(tempFilepath)
-	if err != nil {
-		return fmt.Errorf("failed to create photo file: %v", err)
-	}
-
-	if err := png.Encode(f, image); err != nil {
-		return fmt.Errorf("failed to encode image: %v", err)
-	}
-	defer f.Close()
-
-	buf := new(bytes.Buffer)
-
+func SendDocument(chatID int, f *os.File) error {
+	buf := &bytes.Buffer{}
 	writer := multipart.NewWriter(buf)
+	tmp, _ := writer.CreateFormFile("document", f.Name())
+	f.Seek(0, 0)
+	io.Copy(tmp, f)
+	writer.WriteField("chat_id", strconv.Itoa(chatID))
+	writer.Close()
 
-	writer.CreateFormFile("photo", "photo.png")
-	part, err := writer.CreateFormFile("photo", "photo.png")
-	if err != nil {
-		return fmt.Errorf("failed to create form file: %v", err)
-	}
-
-	if _, err := io.Copy(part, f); err != nil {
-		return fmt.Errorf("failed to copy file to part: %v", err)
-	}
-
-	body, err := http.Post(
-		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/sendPhoto?chat_id="+fmt.Sprintf(
-			"%d",
-			chatID,
-		),
-		writer.FormDataContentType(),
+	request, err := http.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", appConfig.TELEGRAM_TOKEN),
 		buf,
 	)
 	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return fmt.Errorf("failed to send document: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"failed to send document, status code: %d",
+			response.StatusCode,
+		)
+	}
+
+	return nil
+}
+
+func SendPhoto(chatID int, img *image.Image, caption string) error {
+	buf := &bytes.Buffer{}
+	writer := multipart.NewWriter(buf)
+	tmp, _ := writer.CreateFormFile("photo", "image.png")
+	if err := png.Encode(tmp, *img); err != nil {
+		return fmt.Errorf("failed to encode image: %v", err)
+	}
+	writer.WriteField("chat_id", strconv.Itoa(chatID))
+	if caption != "" {
+		writer.WriteField("caption", caption)
+	}
+	writer.Close()
+
+	request, err := http.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf("https://api.telegram.org/bot%s/sendPhoto", appConfig.TELEGRAM_TOKEN),
+		buf,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
 		return fmt.Errorf("failed to send photo: %v", err)
 	}
-	defer body.Body.Close()
+	defer response.Body.Close()
 
-	if body.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send photo, status code: %d", body.StatusCode)
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"failed to send photo, status code: %d",
+			response.StatusCode,
+		)
 	}
 
 	return nil
