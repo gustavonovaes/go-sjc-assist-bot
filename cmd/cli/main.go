@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"image/png"
 	"os"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
@@ -37,9 +36,9 @@ func main() {
 				"-service sspsp -municipality_id <municipality_id> -detailed -year <year>",
 			)
 
-			serviceSSPSPDetailed(*year, *municipalityId, *detailed, *location)
+			serviceSSPSPDetailed(*year, *municipalityId, *location)
 		} else {
-			serviceSSPSP(*year, *municipalityId)
+			serviceSSPSP(*municipalityId)
 		}
 
 	default:
@@ -81,7 +80,7 @@ func serviceCetesb(cityId int) {
 	fmt.Printf("Indice qualidade do Ar: %f\n", data.Features[0].Attributes.Indice)
 }
 
-func serviceSSPSPDetailed(year int, municipalityId int, detailed bool, location bool) {
+func serviceSSPSPDetailed(year int, municipalityId int, location bool) {
 	if location {
 		data, err := sspsp.GetPoliceIncidentsByLocation(year)
 		if err != nil {
@@ -102,7 +101,7 @@ func serviceSSPSPDetailed(year int, municipalityId int, detailed bool, location 
 	fmt.Println(sspsp.GenerateCrimeStatisticsDetailedTable(data))
 }
 
-func serviceSSPSP(year int, municipalityId int) {
+func serviceSSPSP(municipalityId int) {
 	if municipalityId == 0 {
 		fmt.Println("Municipality ID is required")
 		fmt.Printf(
@@ -118,12 +117,6 @@ func serviceSSPSP(year int, municipalityId int) {
 		os.Exit(1)
 	}
 
-	fmt.Println(sspsp.GenerateCrimeStatisticsTable(data[:10]))
-
-	img := sspsp.GenerateCrimeStatisticsImage(600, 300, data[:10])
-	f, _ := os.Create("crime_statistics.png")
-	defer f.Close()
-	png.Encode(f, img)
-
-	return
+	tableStringTop10 := sspsp.GenerateCrimeStatisticsTable(data[:10])
+	fmt.Println(tableStringTop10)
 }
