@@ -3,7 +3,6 @@ package telegram
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -13,12 +12,10 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
-	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"gustavonovaes.dev/go-sjc-assist-bot/pkg/config"
-	"gustavonovaes.dev/go-sjc-assist-bot/pkg/mongodb"
 )
 
 var (
@@ -54,7 +51,12 @@ func SetupWebhook() error {
 	return nil
 }
 
-func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]Command) error {
+func HandleWebhook(
+	w http.ResponseWriter,
+	r *http.Request,
+	commands map[string]Command,
+	hook func(WebhookResponse),
+) error {
 	w.WriteHeader(http.StatusOK)
 
 	var webhookResponse WebhookResponse
@@ -67,7 +69,9 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 		log.Printf("DEBUG: Received message: %+v", webhookResponse.Message)
 	}
 
-	beforeHandleCommands(webhookResponse)
+	if hook != nil {
+		hook(webhookResponse)
+	}
 
 	if len(commands) == 0 {
 		log.Println("No commands available")
@@ -94,19 +98,6 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request, commands map[string]C
 	}
 
 	return nil
-}
-
-func beforeHandleCommands(w WebhookResponse) {
-	_, err := mongodb.GetCollection("activities").InsertOne(context.Background(), &bson.M{
-		"chat_id":   w.Message.Chat.ID,
-		"user_id":   w.Message.From.ID,
-		"username":  w.Message.From.Username,
-		"message":   w.Message.Text,
-		"timestamp": time.Now(),
-	})
-	if err != nil {
-		log.Printf("ERROR: Failed to insert activity: %v", err)
-	}
 }
 
 func beforeCommandExecution(w WebhookResponse, command string) {
