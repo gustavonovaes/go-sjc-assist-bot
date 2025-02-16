@@ -18,7 +18,7 @@ const BASE_URL = "https://www.ssp.sp.gov.br/v1"
 
 var xlsCache = make(map[string][]byte)
 
-func GetPoliceIncidentsCriminal(idMunicipality int) ([]CrimeStatistics, error) {
+func GetPoliceIncidentsCriminal(idMunicipality EnumMunicipality) ([]CrimeStatistics, error) {
 	url := fmt.Sprintf(
 		"%s/OcorrenciasAnuais/recuperaDadosMunicipio?idMunicipio=%d",
 		BASE_URL,
@@ -42,7 +42,7 @@ func GetPoliceIncidentsCriminal(idMunicipality int) ([]CrimeStatistics, error) {
 
 func GetPoliceIncidentsCriminalDetailed(
 	year int,
-	idMunicipality int,
+	idMunicipality EnumMunicipality,
 ) ([]CrimeStatisticsDetailed, error) {
 	url := fmt.Sprintf(
 		"%s/OcorrenciasMensais/RecuperaDadosMensaisAgrupados?ano=%d&grupoDelito=6&tipoGrupo=MUNIC%%C3%%8DPIO&idGrupo=%d",

@@ -12,7 +12,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/pkg/config"
@@ -114,7 +113,7 @@ func afterCommandExecution(w WebhookResponse, command string) {
 	//
 }
 
-func SendMessage(chatID int, message string) error {
+func SendMessage(chatID string, message string) error {
 	res, err := http.Post(
 		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/sendMessage",
 		"application/json",
@@ -137,13 +136,13 @@ func SendMessage(chatID int, message string) error {
 	return nil
 }
 
-func SendDocument(chatID int, f *os.File) error {
+func SendDocument(chatID string, f *os.File) error {
 	buf := &bytes.Buffer{}
 	writer := multipart.NewWriter(buf)
 	tmp, _ := writer.CreateFormFile("document", f.Name())
 	f.Seek(0, 0)
 	io.Copy(tmp, f)
-	writer.WriteField("chat_id", strconv.Itoa(chatID))
+	writer.WriteField("chat_id", chatID)
 	writer.Close()
 
 	request, err := http.NewRequest(
@@ -173,14 +172,14 @@ func SendDocument(chatID int, f *os.File) error {
 	return nil
 }
 
-func SendPhoto(chatID int, img *image.Image, caption string) error {
+func SendPhoto(chatID string, img *image.Image, caption string) error {
 	buf := &bytes.Buffer{}
 	writer := multipart.NewWriter(buf)
 	tmp, _ := writer.CreateFormFile("photo", "image.png")
 	if err := png.Encode(tmp, *img); err != nil {
 		return fmt.Errorf("failed to encode image: %v", err)
 	}
-	writer.WriteField("chat_id", strconv.Itoa(chatID))
+	writer.WriteField("chat_id", chatID)
 	if caption != "" {
 		writer.WriteField("caption", caption)
 	}

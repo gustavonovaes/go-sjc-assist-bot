@@ -11,7 +11,7 @@ type WebhookMessage struct {
 		LanguageCode string `json:"language_code"`
 	} `json:"from"`
 	Chat struct {
-		ID        int    `json:"id"`
+		ID        string `json:"id"`
 		FirstName string `json:"first_name"`
 		LastName  string `json:"last_name"`
 		Username  string `json:"username"`

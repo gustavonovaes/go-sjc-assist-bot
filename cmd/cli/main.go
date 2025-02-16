@@ -36,9 +36,9 @@ func main() {
 				"-service sspsp -municipality_id <municipality_id> -detailed -year <year>",
 			)
 
-			serviceSSPSPDetailed(*year, *municipalityId, *location)
+			serviceSSPSPDetailed(*year, sspsp.EnumMunicipality(*municipalityId), *location)
 		} else {
-			serviceSSPSP(*municipalityId)
+			serviceSSPSP(sspsp.EnumMunicipality(*municipalityId))
 		}
 
 	default:
@@ -80,7 +80,7 @@ func serviceCetesb(cityId int) {
 	fmt.Printf("Indice qualidade do Ar: %f\n", data.Features[0].Attributes.Indice)
 }
 
-func serviceSSPSPDetailed(year int, municipalityId int, location bool) {
+func serviceSSPSPDetailed(year int, municipalityId sspsp.EnumMunicipality, location bool) {
 	if location {
 		data, err := sspsp.GetPoliceIncidentsByLocation(year)
 		if err != nil {
@@ -101,7 +101,7 @@ func serviceSSPSPDetailed(year int, municipalityId int, location bool) {
 	fmt.Println(sspsp.GenerateCrimeStatisticsDetailedTable(data))
 }
 
-func serviceSSPSP(municipalityId int) {
+func serviceSSPSP(municipalityId sspsp.EnumMunicipality) {
 	if municipalityId == 0 {
 		fmt.Println("Municipality ID is required")
 		fmt.Printf(

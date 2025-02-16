@@ -1,15 +1,15 @@
 module gustavonovaes.dev/go-sjc-assist-bot
 
-go 1.23.2
+go 1.24
 
 require (
+	github.com/fogleman/gg v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/plandem/xlsx v1.0.4
 	go.mongodb.org/mongo-driver v1.17.2
 )
 
 require (
-	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
