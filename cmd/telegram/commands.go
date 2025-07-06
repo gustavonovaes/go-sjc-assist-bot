@@ -14,7 +14,7 @@ const MUNICIPALITY_ID = 560  // MUNICIPALITY_ID is the municipality ID for São 
 func CommandStart(message *telegram.WebhookMessage) error {
 	text := `
 👋 <b>Bem-vindo(a)!</b>
-Eu sou o assistente virtual da Cidade de São José dos Campos, aqui para fornecer informações úteis e práticas sobre a cidade.
+Eu sou o assistente virtual da Cidade de São José dos Campos. Estou aqui para te ajuda com algumas informações sobre a cidade.
 
 <b>Comandos disponíveis:</b>
 /start, /ajuda - Inicia a conversa com o bot
@@ -74,7 +74,7 @@ func CommandCrimes(message *telegram.WebhookMessage) error {
 	}
 
 	text := fmt.Sprintf(
-		"<b> Total de Crimes nos últimos Anos - São José dos Campos:</b>\n <code>%s</code>",
+		"<b>Total de Crimes nos últimos anos - São José dos Campos:</b>\n <code>%s</code>",
 		sspsp.GenerateCrimeStatisticsTable(data[:10]),
 	)
 
