@@ -83,7 +83,7 @@ func HandleWebhook(
 			beforeCommandExecution(webhookResponse, command)
 			if err := handler(&webhookResponse.Message); err != nil {
 				log.Printf(
-					"ERROR: Failed to execute command %s for user %s/%d in chat %d: %v",
+					"ERROR: Failed to execute command %s for user %s/%d in chat %s: %v",
 					command,
 					webhookResponse.Message.From.Username,
 					webhookResponse.Message.From.ID,
@@ -103,7 +103,7 @@ func HandleWebhook(
 
 func beforeCommandExecution(w WebhookResponse, command string) {
 	log.Printf(
-		"INFO: User %s/%d requested command %s from in chat %d",
+		"INFO: User %s/%d requested command %s from in chat %s",
 		w.Message.From.Username,
 		w.Message.From.ID,
 		command,
@@ -120,7 +120,7 @@ func SendMessage(chatID string, message string) error {
 		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/sendMessage",
 		"application/json",
 		strings.NewReader(fmt.Sprintf(`{
-			"chat_id": %d, 
+			"chat_id": "%s", 
 			"text": "%s",
 			"parse_mode": "HTML"
 		}`, chatID, message)),
