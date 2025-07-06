@@ -57,6 +57,21 @@ func CommandCrimes(message *telegram.WebhookMessage) error {
 	)
 }
 
+func CommandMapCrimes(message *telegram.WebhookMessage) error {
+	text := `
+<b>Mapa de Crimes - São José dos Campos</b>
+Mapa com marcações dos crimes registrados na cidade no primeiro semestre de 2025.
+
+Os dados criminais foram obtidos através do portal Transparência - Números sem Mistério - SSP-SP:
+https://www.ssp.sp.gov.br/estatistica/consultas
+
+Link para o mapa:
+https://www.google.com/maps/d/u/0/edit?mid=1Z-LoxrmX55O5_Odo1lRXoCcs5TOXifs&usp=sharing
+	`
+
+	return telegram.SendMessage(message.Chat.ID, text)
+}
+
 func CommandStart(message *telegram.WebhookMessage) error {
 	text := `
 Olá! Eu sou o assistente virtual independente, da Cidade de São José dos Campos.
@@ -70,6 +85,7 @@ Comandos disponíveis:
 
 <b>SSP-SP</b>
 /crimes - Exibe os crimes registrados na cidade
+/mapaCrimes - Exibe link para o mapa com os crimes recentes registrados na cidade
 	`
 
 	return telegram.SendMessage(message.Chat.ID, text)

@@ -29,7 +29,8 @@ var commands = map[string]telegram.Command{
 	"/qualidadeAr": CommandQualityAir,
 
 	// sspsp
-	"/crimes": CommandCrimes,
+	"/crimes":     CommandCrimes,
+	"/mapaCrimes": CommandMapCrimes,
 }
 
 func main() {
