@@ -5,8 +5,9 @@ import (
 )
 
 type Config struct {
-	TELEGRAM_TOKEN       string `required:"true"`
-	TELEGRAM_WEBHOOK_URL string `required:"true"`
+	TELEGRAM_API_TOKEN    string `required:"true"`
+	TELEGRAM_SECRET_TOKEN string `required:"true"`
+	TELEGRAM_WEBHOOK_URL  string `required:"true"`
 
 	MONGODB_URI string `required:"true"`
 }

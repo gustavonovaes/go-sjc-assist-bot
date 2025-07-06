@@ -11,86 +11,88 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/config"
 )
 
 var (
-	appConfig config.Config
-	debug     func(WebhookResponse)
+	appConfig  config.Config
+	middleware func(WebhookResponse) WebhookResponse
+	commands   map[string]Command
 )
 
 func init() {
 	appConfig = config.New()
 }
 
-func SetupWebhook(d func(WebhookResponse)) error {
-	debug = d
+func NewWebhookServer(commandHandlers map[string]Command, middlewareFunc func(WebhookResponse) WebhookResponse) *http.ServeMux {
+	middleware = middlewareFunc
+	commands = commandHandlers
 
-	res, err := http.Post(
-		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/setWebhook?url="+appConfig.TELEGRAM_WEBHOOK_URL,
-		"application/json",
-		nil,
-	)
+	webhookURL, err := url.Parse(appConfig.TELEGRAM_WEBHOOK_URL)
 	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	bodyContent := make([]byte, 256)
-	res.Body.Read(bodyContent)
-
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf(
-			"failed to setup webhook, status code: %d, body: %s",
-			res.StatusCode,
-			bodyContent,
-		)
+		log.Fatalf("ERROR: Invalid TELEGRAM_WEBHOOK_URL: %v", err)
 	}
 
-	return nil
+	server := http.NewServeMux()
+
+	pattern := fmt.Sprintf("POST %s", webhookURL.Path)
+	server.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Telegram-Bot-Api-Secret-Token") != appConfig.TELEGRAM_SECRET_TOKEN {
+			log.Printf("WARN: Invalid secret token in request header")
+			http.Error(w, "Forbidden: Invalid secret token", http.StatusForbidden)
+			return
+		}
+
+		err := handleWebhookRequest(r)
+		if err != nil {
+			log.Printf("ERROR: Failed to handle webhook request: %v", err)
+			http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		log.Println("INFO: Webhook request handled successfully")
+	})
+
+	return server
 }
 
-func HandleWebhook(
-	w http.ResponseWriter,
-	r *http.Request,
-	commands map[string]Command,
-) error {
-	w.WriteHeader(http.StatusOK)
-
+func handleWebhookRequest(r *http.Request) error {
 	var webhookResponse WebhookResponse
 	if err := json.NewDecoder(r.Body).Decode(&webhookResponse); err != nil {
-		return fmt.Errorf("failed to decode request body: %v", err)
+		bodyContent, _ := io.ReadAll(r.Body)
+		return fmt.Errorf("failed to decode request body: %v\n%+v", err, bodyContent)
 	}
 	r.Body.Close()
 
-	if os.Getenv("DEBUG") == "true" {
-		log.Printf("DEBUG: Received message: %+v", webhookResponse.Message)
-	}
-
-	if debug != nil {
-		debug(webhookResponse)
+	if middleware != nil {
+		log.Println("INFO: Applying middleware to webhook response")
+		webhookResponse = middleware(webhookResponse)
 	}
 
 	if len(commands) == 0 {
-		log.Println("No commands available")
+		log.Println("INFO: No commands available")
+		return nil
 	}
 
 	for command, handler := range commands {
 		if strings.Contains(webhookResponse.Message.Text, command) {
 			beforeCommandExecution(webhookResponse, command)
+
 			if err := handler(&webhookResponse.Message); err != nil {
 				log.Printf(
-					"ERROR: Failed to execute command %s for user %s/%d in chat %s: %v",
+					"ERROR: Failed to execute command %s for user %s/%d in chat %d: %v",
 					command,
 					webhookResponse.Message.From.Username,
 					webhookResponse.Message.From.ID,
 					webhookResponse.Message.Chat.ID,
 					err,
 				)
-				w.WriteHeader(http.StatusInternalServerError)
 				return err
 			}
 
@@ -102,25 +104,59 @@ func HandleWebhook(
 }
 
 func beforeCommandExecution(w WebhookResponse, command string) {
-	log.Printf(
-		"INFO: User %s/%d requested command %s from in chat %s",
-		w.Message.From.Username,
-		w.Message.From.ID,
-		command,
-		w.Message.Chat.ID,
-	)
+	if os.Getenv("DEBUG") != "" {
+		log.Printf(
+			"DEBUG: User %s/%d requested command %s from in chat %d",
+			w.Message.From.Username,
+			w.Message.From.ID,
+			command,
+			w.Message.Chat.ID,
+		)
+	}
 }
 
 func afterCommandExecution(w WebhookResponse, command string) {
 	//
 }
 
-func SendMessage(chatID string, message string) error {
+func SetupWebhook() error {
+	url := fmt.Sprintf(
+		"https://api.telegram.org/bot%s/setWebhook?url=%s&secret_token=%s",
+		appConfig.TELEGRAM_API_TOKEN,
+		appConfig.TELEGRAM_WEBHOOK_URL,
+		appConfig.TELEGRAM_SECRET_TOKEN,
+	)
+
+	response, err := http.Post(url, "application/json", nil)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	bodyContent := make([]byte, 256)
+	response.Body.Read(bodyContent)
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"failed to setup webhook, status code: %d, body: %s",
+			response.StatusCode,
+			bodyContent,
+		)
+	}
+
+	if os.Getenv("DEBUG") != "" {
+		log.Printf("DEBUG: Webhook setup response: %s", bodyContent)
+	}
+
+	return nil
+}
+
+func SendMessage(chatID int, message string) error {
 	res, err := http.Post(
-		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/sendMessage",
+		"https://api.telegram.org/bot"+appConfig.TELEGRAM_API_TOKEN+"/sendMessage",
 		"application/json",
 		strings.NewReader(fmt.Sprintf(`{
-			"chat_id": "%s", 
+			"chat_id": "%d", 
 			"text": "%s",
 			"parse_mode": "HTML"
 		}`, chatID, message)),
@@ -138,18 +174,18 @@ func SendMessage(chatID string, message string) error {
 	return nil
 }
 
-func SendDocument(chatID string, f *os.File) error {
+func SendDocument(chatID int, f *os.File) error {
 	buf := &bytes.Buffer{}
 	writer := multipart.NewWriter(buf)
 	tmp, _ := writer.CreateFormFile("document", f.Name())
 	f.Seek(0, 0)
 	io.Copy(tmp, f)
-	writer.WriteField("chat_id", chatID)
+	writer.WriteField("chat_id", strconv.Itoa(chatID))
 	writer.Close()
 
 	request, err := http.NewRequest(
 		http.MethodPost,
-		fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", appConfig.TELEGRAM_TOKEN),
+		fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", appConfig.TELEGRAM_API_TOKEN),
 		buf,
 	)
 	if err != nil {
@@ -174,14 +210,14 @@ func SendDocument(chatID string, f *os.File) error {
 	return nil
 }
 
-func SendPhoto(chatID string, img *image.Image, caption string) error {
+func SendPhoto(chatID int, img *image.Image, caption string) error {
 	buf := &bytes.Buffer{}
 	writer := multipart.NewWriter(buf)
 	tmp, _ := writer.CreateFormFile("photo", "image.png")
 	if err := png.Encode(tmp, *img); err != nil {
 		return fmt.Errorf("failed to encode image: %v", err)
 	}
-	writer.WriteField("chat_id", chatID)
+	writer.WriteField("chat_id", strconv.Itoa(chatID))
 	if caption != "" {
 		writer.WriteField("caption", caption)
 	}
@@ -189,7 +225,7 @@ func SendPhoto(chatID string, img *image.Image, caption string) error {
 
 	request, err := http.NewRequest(
 		http.MethodPost,
-		fmt.Sprintf("https://api.telegram.org/bot%s/sendPhoto", appConfig.TELEGRAM_TOKEN),
+		fmt.Sprintf("https://api.telegram.org/bot%s/sendPhoto", appConfig.TELEGRAM_API_TOKEN),
 		buf,
 	)
 	if err != nil {

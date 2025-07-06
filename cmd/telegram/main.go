@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"os"
@@ -15,31 +14,31 @@ import (
 )
 
 const (
-	URL_PATH              = "/"
-	ADDR                  = ":443"
-	TIMEOUT_SETUP_WEBHOOK = 10 * time.Second
+	WEBHOOK_URL_PATH    = "/"
+	WEBHOOK_SETUP_DELAY = 10 * time.Second
+	LISTEN_ADDR         = ":443"
 )
 
+var commands = map[string]telegram.Command{
+	// common
+	"/start": CommandStart,
+	"/ajuda": CommandStart,
+	"/sobre": CommandAbout,
+
+	// cetesb
+	"/qualidadeAr": CommandQualityAir,
+
+	// sspsp
+	"/crimes": CommandCrimes,
+}
+
 func main() {
-	server := http.NewServeMux()
-	server.HandleFunc(URL_PATH, func(w http.ResponseWriter, r *http.Request) {
-		telegram.HandleWebhook(w, r, map[string]telegram.Command{
-			"/start": CommandStart,
-			"/ajuda": CommandStart,
-			"/sobre": CommandAbout,
+	server := telegram.NewWebhookServer(commands, logUserActivityMiddleware)
 
-			// cetesb
-			"/qualidadeAr": CommandQualityAir,
-
-			// sspsp
-			"/crimes": CommandCrimes,
-		})
-	})
-
-	// Calls Telegram API to setup webhook after a timeout
+	// Calls Telegram API to setup webhook after a delay to ensure the server is ready
 	go func() {
-		<-time.After(TIMEOUT_SETUP_WEBHOOK)
-		err := telegram.SetupWebhook(logUserActivity)
+		<-time.After(WEBHOOK_SETUP_DELAY)
+		err := telegram.SetupWebhook()
 		if err != nil {
 			log.Fatalf("ERROR: Fail to setup webhook: %v", err)
 		}
@@ -48,21 +47,26 @@ func main() {
 	}()
 
 	// Start the server and listen for shutdown signals to ensure graceful termination of the server
-	listenWithGracefulShutdown(ADDR, server)
+	listenWithGracefulShutdown(LISTEN_ADDR, server)
 }
 
-func logUserActivity(wr telegram.WebhookResponse) {
-	_, err := mongodb.GetCollection("activities").InsertOne(context.Background(), &bson.M{
+func logUserActivityMiddleware(wr telegram.WebhookResponse) telegram.WebhookResponse {
+	activity := &bson.M{
 		"chat_id":   wr.Message.Chat.ID,
 		"user_id":   wr.Message.From.ID,
 		"username":  wr.Message.From.Username,
 		"message":   wr.Message.Text,
 		"timestamp": time.Now(),
-	})
-
-	if err != nil {
-		log.Printf("ERROR: Fail to insert activity: %v", err)
 	}
+
+	// Insert the activity into MongoDB asynchronously
+	go func() {
+		if err := mongodb.SaveCollection("activities", activity); err != nil {
+			log.Printf("ERROR: Fail to insert activity: %v\n%+v", err, activity)
+		}
+	}()
+
+	return wr
 }
 
 func listenWithGracefulShutdown(addr string, server http.Handler) {
