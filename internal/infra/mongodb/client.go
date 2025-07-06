@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/config"
 )
 
@@ -43,7 +44,12 @@ func GetClient() *mongo.Client {
 }
 
 func GetCollection(name string) *mongo.Collection {
-	return client.Database(appConfig.DB_NAME).Collection(name)
+	uri, err := connstring.ParseAndValidate(appConfig.MONGODB_URI)
+	if err != nil {
+		log.Fatalf("ERROR: Invalid MongoDB URI: %v", err)
+	}
+
+	return client.Database(uri.Database).Collection(name)
 }
 
 func SaveCollection(name string, data interface{}) error {
