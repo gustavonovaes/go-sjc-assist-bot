@@ -6,7 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gustavonovaes.dev/go-sjc-assist-bot/pkg/config"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/config"
 )
 
 var (

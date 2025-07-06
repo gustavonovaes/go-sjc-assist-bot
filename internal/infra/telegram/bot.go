@@ -14,18 +14,21 @@ import (
 	"os"
 	"strings"
 
-	"gustavonovaes.dev/go-sjc-assist-bot/pkg/config"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/config"
 )
 
 var (
 	appConfig config.Config
+	debug     func(WebhookResponse)
 )
 
 func init() {
 	appConfig = config.New()
 }
 
-func SetupWebhook() error {
+func SetupWebhook(d func(WebhookResponse)) error {
+	debug = d
+
 	res, err := http.Post(
 		"https://api.telegram.org/bot"+appConfig.TELEGRAM_TOKEN+"/setWebhook?url="+appConfig.TELEGRAM_WEBHOOK_URL,
 		"application/json",
@@ -54,7 +57,6 @@ func HandleWebhook(
 	w http.ResponseWriter,
 	r *http.Request,
 	commands map[string]Command,
-	hook func(WebhookResponse),
 ) error {
 	w.WriteHeader(http.StatusOK)
 
@@ -68,8 +70,8 @@ func HandleWebhook(
 		log.Printf("DEBUG: Received message: %+v", webhookResponse.Message)
 	}
 
-	if hook != nil {
-		hook(webhookResponse)
+	if debug != nil {
+		debug(webhookResponse)
 	}
 
 	if len(commands) == 0 {
@@ -79,7 +81,7 @@ func HandleWebhook(
 	for command, handler := range commands {
 		if strings.Contains(webhookResponse.Message.Text, command) {
 			beforeCommandExecution(webhookResponse, command)
-			if err := handler(webhookResponse.Message); err != nil {
+			if err := handler(&webhookResponse.Message); err != nil {
 				log.Printf(
 					"ERROR: Failed to execute command %s for user %s/%d in chat %d: %v",
 					command,

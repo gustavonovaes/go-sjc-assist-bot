@@ -10,10 +10,8 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
-	"gustavonovaes.dev/go-sjc-assist-bot/internal/sspsp"
-	"gustavonovaes.dev/go-sjc-assist-bot/internal/telegram"
-	"gustavonovaes.dev/go-sjc-assist-bot/pkg/mongodb"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/infra/mongodb"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/infra/telegram"
 )
 
 const (
@@ -22,28 +20,26 @@ const (
 	TIMEOUT_SETUP_WEBHOOK = 10 * time.Second
 )
 
-var COMMANDS = map[string]telegram.Command{
-	"/start": telegram.CommandStart,
-	"/ajuda": telegram.CommandStart,
-	"/sobre": telegram.CommandAbout,
-
-	// cetesb
-	"/qualidadeAr": cetesb.CommandQualidadeAr,
-
-	// sspsp
-	"/crimes": sspsp.CommandCrimes,
-}
-
 func main() {
 	server := http.NewServeMux()
 	server.HandleFunc(URL_PATH, func(w http.ResponseWriter, r *http.Request) {
-		telegram.HandleWebhook(w, r, COMMANDS, logUserActivity)
+		telegram.HandleWebhook(w, r, map[string]telegram.Command{
+			"/start": CommandStart,
+			"/ajuda": CommandStart,
+			"/sobre": CommandAbout,
+
+			// cetesb
+			"/qualidadeAr": CommandQualityAir,
+
+			// sspsp
+			"/crimes": CommandCrimes,
+		})
 	})
 
 	// Calls Telegram API to setup webhook after a timeout
 	go func() {
 		<-time.After(TIMEOUT_SETUP_WEBHOOK)
-		err := telegram.SetupWebhook()
+		err := telegram.SetupWebhook(logUserActivity)
 		if err != nil {
 			log.Fatalf("ERROR: Fail to setup webhook: %v", err)
 		}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"gustavonovaes.dev/go-sjc-assist-bot/internal/cetesb"
-	"gustavonovaes.dev/go-sjc-assist-bot/internal/sspsp"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/domain/cetesb"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/domain/sspsp"
 )
 
 func main() {

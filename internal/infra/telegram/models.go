@@ -1,5 +1,7 @@
 package telegram
 
+type Command func(*WebhookMessage) error
+
 type WebhookMessage struct {
 	MessageID int `json:"message_id"`
 	From      struct {
