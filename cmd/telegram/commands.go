@@ -13,6 +13,10 @@ const MUNICIPALITY_ID = 560  // MUNICIPALITY_ID is the municipality ID for São 
 
 func CommandQualityAir(message *telegram.WebhookMessage) error {
 	commandCityId := ExtractCityIdFromMessage(message.Text)
+	if commandCityId == 0 {
+		commandCityId = QUALAR_STATION_ID
+	}
+
 	res, err := cetesb.GetQualarData(commandCityId)
 	if err != nil {
 		return fmt.Errorf(
