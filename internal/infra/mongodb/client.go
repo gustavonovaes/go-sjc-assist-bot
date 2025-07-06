@@ -23,6 +23,7 @@ func init() {
 	if err != nil {
 		log.Fatalf("ERROR: Fail to connect to MongoDB: %v", err)
 	}
+	log.Println("INFO: MongoDB connected successfully")
 }
 
 func Connect() (*mongo.Client, error) {
