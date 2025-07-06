@@ -14,7 +14,7 @@ const MUNICIPALITY_ID = 560  // MUNICIPALITY_ID is the municipality ID for São 
 func CommandStart(message *telegram.WebhookMessage) error {
 	text := `
 👋 <b>Bem-vindo(a)!</b>
-Eu sou o assistente virtual da Cidade de São José dos Campos. Estou aqui para te ajuda com algumas informações sobre a cidade.
+Eu sou o assistente virtual da Cidade de São José dos Campos. Estou aqui para te ajudar com algumas informações sobre a cidade.
 
 <b>Comandos disponíveis:</b>
 /start, /ajuda - Inicia a conversa com o bot
