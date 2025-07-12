@@ -17,11 +17,37 @@ A lightweight bot designed to provide useful information about São José dos Ca
 
 ## Running as CLI
 ```bash
-go run cmd/cli/main.go -service cetesb -city_id 49
+Usage: go run ./cmd/cli/main.go <sspsp|sspsp:detailed [year]|cetesb|news|news:filtered|model:train|model:test [text]>
 
-# Output
-Nome: S.José Campos
-Indice qualidade do Ar: 22.00000
+
+# example commands
+
+> go run ./cmd/cli/main.go cetesb
+
+=======================================================
+| N1 - BOA        | N2 - MODERADA   | N3 - RUIM       |
+| N4 - MUITO RUIM | N5 - PÉSSIMA    |                 |
+=======================================================
+Índice atual: N1 - BOA (23.00)
+=======================================================
+
+> go run ./cmd/cli/main.go sspsp:detailed 2022
+
+ Jan | Fev | Mar | Abr | Mai | Jun | Jul | Ago | Set | Out | Nov | Dez | Delito 
+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+--------
+ 369 | 378 | 482 | 453 | 539 | 482 | 345 | 568 | 552 | 563 | 456 | 453 | FURTO - OUTROS 
+  76 |  98 | 109 | 102 |  98 | 105 | 117 | 116 | 126 | 116 | 126 |  97 | FURTO DE VEÍCULO 
+   0 |   0 |   0 |   1 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 | HOMICÍDIO CULPOSO OUTROS...
+...
+
+> go run ./cmd/cli/main.go model:train
+
+Training model with:
+ - good subjects: [emergencial povo apoio conscientização projeto infraestrutura conquista governo prefeitura municipio sjc são josé dos campos são josé estado de sp sp registra paulista investimento economia atinge meta operação acontece inaugura festa do fim de semana feira]
+ - bad subjects: [acidente violencia mort familia corpo assassinato roubo furt incendio atropel apreensão cachorr sexual mutilad agredid sem vida asfixiou em coma desaparecid quadrilha trafico confusão agressão polícia suspeita drogas armas tiroteio assalto sequestro explosão criminoso bolsonaro lula taubaté jacareí rio de janeiro tecnico de copa américa brasileirão copa de clubes fifa]
+
+
+> go run ./cmd/cli/main.go model:test "A prefeitura de São José dos Campos anunciou um novo projeto de infraestrutura que promete melhorar a qualidade de vida na cidade."
 ```
 
 ## Contributing
