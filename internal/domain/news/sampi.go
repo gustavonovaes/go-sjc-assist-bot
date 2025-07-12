@@ -69,7 +69,7 @@ func (c *SampiNewsClient) parseHTML(htmlData []byte) ([]News, error) {
 
 	news := make([]News, 0, len(matches))
 	for _, match := range matches {
-		if len(match) <= 3 {
+		if len(match) < 3 {
 			log.Printf("Skipping malformed news item match: %v", match)
 			continue
 		}
