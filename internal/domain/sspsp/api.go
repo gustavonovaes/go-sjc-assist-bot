@@ -6,28 +6,30 @@ package sspsp
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"runtime"
-
-	"github.com/plandem/xlsx"
 )
 
-const BASE_URL = "https://www.ssp.sp.gov.br/v1"
+const (
+	sspspURL = "https://www.ssp.sp.gov.br/v1"
+)
 
-var xlsCache = make(map[string][]byte)
+// var xlsCache = make(map[string][]byte)
 
 func GetPoliceIncidentsCriminal(idMunicipality EnumMunicipality) ([]CrimeStatistics, error) {
 	url := fmt.Sprintf(
 		"%s/OcorrenciasAnuais/recuperaDadosMunicipio?idMunicipio=%d",
-		BASE_URL,
+		sspspURL,
 		idMunicipality,
 	)
 
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch data: %s", response.Status)
 	}
 
 	var data GetPoliceIncidentsCriminalResponse
@@ -46,7 +48,7 @@ func GetPoliceIncidentsCriminalDetailed(
 ) ([]CrimeStatisticsDetailed, error) {
 	url := fmt.Sprintf(
 		"%s/OcorrenciasMensais/RecuperaDadosMensaisAgrupados?ano=%d&grupoDelito=6&tipoGrupo=MUNIC%%C3%%8DPIO&idGrupo=%d",
-		BASE_URL,
+		sspspURL,
 		year,
 		idMunicipality,
 	)
@@ -54,6 +56,7 @@ func GetPoliceIncidentsCriminalDetailed(
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 
 	var data GetPoliceIncidentsCriminalDetailedResponse
 	json.NewDecoder(response.Body).Decode(&data)
@@ -63,70 +66,71 @@ func GetPoliceIncidentsCriminalDetailed(
 	}
 
 	if len(data.Data) == 0 {
-		return nil, fmt.Errorf("no data found")
+		return nil, fmt.Errorf("no data found for year %d and municipality %d", year, idMunicipality)
 	}
 
 	return data.Data[0].ListaDados, nil
 }
 
-func GetPoliceIncidentsByLocation(year int) ([]CrimeStatisticsByLocation, error) {
-	//  https://www.ssp.sp.gov.br/assets/estatistica/transparencia/spDados/SPDadosCriminais_2024.xlsx
+// TODO: Implementar a função para obter dados de ocorrências por localização direto de XLSX
+// func GetPoliceIncidentsByLocation(year int) ([]CrimeStatisticsByLocation, error) {
+// 	//  https://www.ssp.sp.gov.br/assets/estatistica/transparencia/spDados/SPDadosCriminais_2024.xlsx
 
-	// url := fmt.Sprintf(
-	// 	"https://www.ssp.sp.gov.br/assets/estatistica/transparencia/spDados/SPDadosCriminais_%d.xlsx",
-	// 	year,
-	// )
+// 	// url := fmt.Sprintf(
+// 	// 	"https://www.ssp.sp.gov.br/assets/estatistica/transparencia/spDados/SPDadosCriminais_%d.xlsx",
+// 	// 	year,
+// 	// )
 
-	currentDirectory, _ := os.Getwd()
+// 	currentDirectory, _ := os.Getwd()
 
-	filePath := fmt.Sprintf("%s/SPDadosCriminais_2024.xlsx", currentDirectory)
-	fmt.Println("xlsx:", filePath)
+// 	filePath := fmt.Sprintf("%s/SPDadosCriminais_2024.xlsx", currentDirectory)
+// 	fmt.Println("xlsx:", filePath)
 
-	file, _ := os.OpenFile(filePath, os.O_RDONLY, 0644)
+// 	file, _ := os.OpenFile(filePath, os.O_RDONLY, 0644)
 
-	// response, err := http.Get(url)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return nil, err
-	// }
+// 	// response, err := http.Get(url)
+// 	// if err != nil {
+// 	// 	log.Println(err)
+// 	// 	return nil, err
+// 	// }
 
-	xl, err := xlsx.Open(file)
-	if err != nil {
-		return nil, err
-	}
-	defer xl.Close()
+// 	xl, err := xlsx.Open(file)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer xl.Close()
 
-	showMemoryUsage()
+// 	showMemoryUsage()
 
-	for sheets := xl.Sheets(); sheets.HasNext(); {
-		_, sheet := sheets.Next()
-		defer sheet.Close()
+// 	for sheets := xl.Sheets(); sheets.HasNext(); {
+// 		_, sheet := sheets.Next()
+// 		defer sheet.Close()
 
-		totalCols, totalRows := sheet.Dimension()
+// 		totalCols, totalRows := sheet.Dimension()
 
-		fmt.Printf("sheet:%s totalRows:%d totalCols:%d\n", sheet.Name(), totalRows, totalCols)
+// 		fmt.Printf("sheet:%s totalRows:%d totalCols:%d\n", sheet.Name(), totalRows, totalCols)
 
-		for rowIndex := 0; rowIndex < totalRows; rowIndex++ {
-			for colIndex := 0; colIndex < totalCols; colIndex++ {
-				// cell := sheet.Cell(rowIndex, colIndex)
-				// fmt.Println(cell.String())
-			}
-		}
+// 		for rowIndex := 0; rowIndex < totalRows; rowIndex++ {
+// 			for colIndex := 0; colIndex < totalCols; colIndex++ {
+// 				// cell := sheet.Cell(rowIndex, colIndex)
+// 				// fmt.Println(cell.String())
+// 			}
+// 		}
 
-		showMemoryUsage()
+// 		showMemoryUsage()
 
-	}
+// 	}
 
-	return nil, nil
-}
+// 	return nil, nil
+// }
 
-func showMemoryUsage() {
-	currentMemoryUsage := &runtime.MemStats{}
+// func showMemoryUsage() {
+// 	currentMemoryUsage := &runtime.MemStats{}
 
-	runtime.ReadMemStats(currentMemoryUsage)
+// 	runtime.ReadMemStats(currentMemoryUsage)
 
-	log.Printf(
-		"Memory Usage: %v MB\n",
-		currentMemoryUsage.Alloc/1024/1024,
-	)
-}
+// 	log.Printf(
+// 		"Memory Usage: %v MB\n",
+// 		currentMemoryUsage.Alloc/1024/1024,
+// 	)
+// }
