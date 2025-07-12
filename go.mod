@@ -4,6 +4,7 @@ go 1.24.4
 
 require (
 	github.com/fogleman/gg v1.3.0
+	github.com/jbrukh/bayesian v0.0.0-20231117143245-13ae6f916c7a
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/plandem/xlsx v1.0.4
 	go.mongodb.org/mongo-driver v1.17.4

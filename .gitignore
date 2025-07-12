@@ -17,3 +17,8 @@ go.sum
 tmp/*
 *.tmp
 *.temp
+
+*.xml
+*.html
+*.json
+*.gob
