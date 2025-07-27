@@ -97,6 +97,8 @@ func handleWebhookRequest(r *http.Request) error {
 			}
 
 			afterCommandExecution(webhookResponse, command)
+
+			return nil
 		}
 	}
 

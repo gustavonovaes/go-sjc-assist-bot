@@ -2,8 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strings"
 
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/domain/cetesb"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/domain/news"
+	"gustavonovaes.dev/go-sjc-assist-bot/internal/domain/nlp"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/domain/sspsp"
 	"gustavonovaes.dev/go-sjc-assist-bot/internal/infra/telegram"
 )
@@ -26,6 +31,9 @@ Eu sou o assistente virtual da Cidade de São José dos Campos. Estou aqui para 
 <b>🚔 SSP-SP</b>
 /crimes - Exibe o total de crimes registrados na cidade nos últimos anos
 /mapaCrimes - Exibe link para o mapa com as marcações dos crimes registrados no último semestre
+
+<b>📰 Notícias</b>
+/ultimasNoticias - Exibe as últimas notícias da cidade dos principais portais
 	`
 
 	return telegram.SendMessage(message.Chat.ID, text)
@@ -83,7 +91,7 @@ func CommandCrimes(message *telegram.WebhookMessage) error {
 
 func CommandMapCrimes(message *telegram.WebhookMessage) error {
 	text := `
-<b>🗺️ Mapa de Crimes - São José dos Campos</b>
+<b>🗺️ Mapa de Crimes</b>
 Mapa com marcações dos crimes registrados na cidade no primeiro semestre de 2025.
 
 Link para o mapa: 
@@ -92,6 +100,54 @@ https://www.google.com/maps/d/viewer?mid=1Z-LoxrmX55O5_Odo1lRXoCcs5TOXifs
 Os dados criminais foram obtidos através do <b>Portal Transparência - Números sem Mistério</b> da SSP-SP. Link para o portal:
 https://www.ssp.sp.gov.br/estatistica/consultas
 	`
+
+	return telegram.SendMessage(message.Chat.ID, text)
+}
+
+func CommandLastNews(message *telegram.WebhookMessage, modelPath string, limit int) error {
+	if _, err := os.Stat(modelPath); os.IsNotExist(err) {
+		return fmt.Errorf("model file not found at %s", modelPath)
+	}
+
+	log.Printf("INFO: Getting news...")
+	allNews, err := news.GetLastNews()
+	if err != nil {
+		return fmt.Errorf("failed to get news from MEON: %v", err)
+	}
+	log.Printf("INFO: Fetched %d news items from MEON and Sampi", len(allNews))
+
+	var filteredNews []news.News
+	nlpService := nlp.NewNLPService(modelPath)
+	for _, newsItem := range allNews {
+		text := strings.Join([]string{newsItem.Origin, newsItem.Title, newsItem.Content}, " ")
+		class, err := nlpService.ClassifyContent(text)
+		if err != nil {
+			return fmt.Errorf("failed to classify news '%s': %v", newsItem.Title, err)
+		}
+
+		switch class {
+		case nlp.Good:
+			filteredNews = append(filteredNews, newsItem)
+		case nlp.Bad:
+		default:
+		}
+	}
+
+	text := "<b>📰 Últimas Notícias</b>\n\n"
+	if len(filteredNews) == 0 {
+		text += "<b>Nenhuma notícia encontrada.</b>"
+	}
+
+	for _, newsItem := range filteredNews {
+		text += fmt.Sprintf(
+			"<a href='%s'>%s %s</a>\n\n",
+			newsItem.Link,
+			newsItem.Title,
+			newsItem.Content,
+		)
+	}
+
+	text += `\nFontes: <a href='https://www.meon.com.br/noticias/rmvale'>Meon</a>, <a href='https://sampi.net.br/ovale/categoria/ultimas'>Sampi</a>`
 
 	return telegram.SendMessage(message.Chat.ID, text)
 }

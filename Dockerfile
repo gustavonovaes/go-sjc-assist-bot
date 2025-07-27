@@ -11,8 +11,12 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   -ldflags "-s -w -X main.version=$(git describe --tags --always --dirty 2>/dev/null || echo 'v0.0.0')" \
   -o ./bin/ ./...
 
+# Generate model.gob
+RUN /app/bin/cli model:train
+
 FROM scratch as runtime 
 WORKDIR /app
+COPY --from=builder /app/model.gob /app/bin/model.gob
 COPY --from=builder /app/bin/* /app/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 

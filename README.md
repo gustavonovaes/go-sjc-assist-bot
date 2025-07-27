@@ -14,6 +14,8 @@ A lightweight bot designed to provide useful information about São José dos Ca
 | `/qualidadeAr` | Exibe o índice de qualidade do ar da cidade via CETESB |
 | `/crimes` | Exibe o total de crimes registrados na cidade nos últimos anos |
 | `/mapaCrimes` | Exibe link para o mapa com a marcações dos crimes registrados no último semestre |
+| `/ultimasNoticias` | Exibe as últimas notícias da cidade dos principais portais |
+
 
 ## Running as CLI
 ```bash

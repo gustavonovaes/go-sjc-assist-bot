@@ -103,14 +103,16 @@ func main() {
 			"emergencial", "povo", "apoio", "conscientização", "projeto", "infraestrutura", "conquista",
 			"governo", "prefeitura", "municipio",
 			"sjc", "são josé dos campos", "são josé", "estado de sp", "sp registra", "paulista",
-			"investimento", "economia", "atinge meta", "operação acontece", "inaugura",
+			"investimento", "economia", "atinge meta", "operação acontece", "inaugura", "terá aumento",
+
 			"festa do", "fim de semana", "feira",
 		}
 		badSubjects := []string{
-			"acidente", "violencia", "mort familia corpo", "assassinato", "roubo", "furt", "incendio", "atropel", "apreensão", "cachorr", "sexual", "mutilad", "agredid", "sem vida", "asfixiou", "em coma", "desaparecid",
+			"acidente", "violencia", "morre aos", "morte", "encontrada morta", "encontrado morto", "assassinato", "roubo", "furta", "furto", "incendio", "atropela", "apreensão", "cachorro", "sexual", "mutilada", "mutilado", "agredida", "agredido", "sem vida", "asfixiou", "em coma", "desaparecido", "desaparecida", "são mortos",
 			"quadrilha trafico", "confusão", "agressão", "polícia suspeita", "drogas", "armas", "tiroteio", "assalto", "sequestro", "explosão", "criminoso", "bolsonaro", "lula",
 			"taubaté", "jacareí", "rio de janeiro",
 			"tecnico de", "copa américa", "brasileirão", "copa de clubes", "fifa",
+			"previsão do tempo",
 		}
 
 		fmt.Printf("Training model with:\n - good subjects: %v\n - bad subjects: %v\n", goodSubjects, badSubjects)
@@ -193,18 +195,10 @@ func main() {
 			}
 		}
 	case "news:filtered":
-		var newsList []news.News
-		meonNews, err := news.GetMeonNews()
+		newsList, err := news.GetLastNews()
 		if err != nil {
-			log.Fatalf("Error fetching Meon news: %v\n", err)
+			log.Fatalf("Error fetching news: %v\n", err)
 		}
-		newsList = append(newsList, meonNews...)
-
-		sampiNews, err := news.GetSampiNews()
-		if err != nil {
-			log.Fatalf("Error fetching Sampi news: %v\n", err)
-		}
-		newsList = append(newsList, sampiNews...)
 
 		nlpService := nlp.NewNLPService(modelPath)
 
@@ -212,7 +206,7 @@ func main() {
 			text := strings.Join([]string{newsItem.Origin, newsItem.Title, newsItem.Content}, " ")
 			class, err := nlpService.ClassifyContent(text)
 			if err != nil {
-				fmt.Printf("   Error classifying news '%s': %v\n", newsItem.Title, err)
+				fmt.Printf("Error classifying news '%s': %v\n", newsItem.Title, err)
 				continue
 			}
 

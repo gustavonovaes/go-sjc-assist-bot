@@ -14,9 +14,11 @@ import (
 )
 
 const (
-	WEBHOOK_URL_PATH    = "/"
-	WEBHOOK_SETUP_DELAY = 10 * time.Second
-	LISTEN_ADDR         = ":443"
+	webhookURLPath    = "/"
+	webhookSetupDelay = 10 * time.Second
+	listenAddr        = ":443"
+	modelPath         = "/app/bin/model.gob"
+	maxNewsLimit      = 100
 )
 
 var commands = map[string]telegram.Command{
@@ -31,6 +33,11 @@ var commands = map[string]telegram.Command{
 	// sspsp
 	"/crimes":     CommandCrimes,
 	"/mapaCrimes": CommandMapCrimes,
+
+	// news
+	"/ultimasNoticias": func(message *telegram.WebhookMessage) error {
+		return CommandLastNews(message, modelPath, maxNewsLimit)
+	},
 }
 
 func main() {
@@ -38,7 +45,7 @@ func main() {
 
 	// Calls Telegram API to setup webhook after a delay to ensure the server is ready
 	go func() {
-		<-time.After(WEBHOOK_SETUP_DELAY)
+		<-time.After(webhookSetupDelay)
 		err := telegram.SetupWebhook()
 		if err != nil {
 			log.Fatalf("ERROR: Fail to setup webhook: %v", err)
@@ -48,7 +55,7 @@ func main() {
 	}()
 
 	// Start the server and listen for shutdown signals to ensure graceful termination of the server
-	listenWithGracefulShutdown(LISTEN_ADDR, server)
+	listenWithGracefulShutdown(listenAddr, server)
 }
 
 func logUserActivityMiddleware(wr telegram.WebhookResponse) telegram.WebhookResponse {
