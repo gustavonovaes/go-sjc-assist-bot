@@ -6,7 +6,6 @@ require (
 	github.com/fogleman/gg v1.3.0
 	github.com/jbrukh/bayesian v0.0.0-20231117143245-13ae6f916c7a
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/plandem/xlsx v1.0.4
 	go.mongodb.org/mongo-driver v1.17.4
 )
 
@@ -15,7 +14,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
-	github.com/plandem/ooxml v1.1.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect

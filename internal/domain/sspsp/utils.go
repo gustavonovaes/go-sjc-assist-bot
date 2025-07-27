@@ -43,7 +43,6 @@ func GenerateCrimeStatisticsImage(w, h int, data []CrimeStatistics) image.Image 
 	canvas.SetColor(color.White)
 	canvas.Clear()
 
-	// Cor do texto
 	canvas.SetColor(color.Black)
 
 	x := 10.0
@@ -86,11 +85,9 @@ func GenerateCrimeStatisticsDetailedTable(data []CrimeStatisticsDetailed) (outpu
 	output += "-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+--------\n"
 
 	// Ordena os dados por delito de forma crescente
-	for i := 0; i < len(data); i++ {
-		for j := 0; j < len(data)-1; j++ {
-			if strings.Compare(data[j].Delito.Delito, data[j+1].Delito.Delito) > 0 {
-				data[j], data[j+1] = data[j+1], data[j]
-			}
+	for j := 0; j < len(data)-1; j++ {
+		if strings.Compare(data[j].Delito.Delito, data[j+1].Delito.Delito) > 0 {
+			data[j], data[j+1] = data[j+1], data[j]
 		}
 	}
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"image/png"
 	"log"
 	"os"
 	"strconv"
@@ -72,6 +73,30 @@ func main() {
 		}
 
 		fmt.Println(sspsp.GenerateCrimeStatisticsDetailedTable(data))
+
+	case "sspsp:image":
+		filePath := "crime_statistics.png"
+		if len(args) >= 2 {
+			filePath = args[1]
+		}
+
+		data, err := sspsp.GetPoliceIncidentsCriminal(municipalityId)
+		if err != nil {
+			log.Fatalf("Error fetching detailed data: %v\n", err)
+		}
+
+		img := sspsp.GenerateCrimeStatisticsImage(800, 600, data)
+
+		file, err := os.Create(filePath)
+		if err != nil {
+			log.Fatalf("Error creating image file: %v\n", err)
+		}
+		defer file.Close()
+
+		err = png.Encode(file, img)
+		if err != nil {
+			log.Fatalf("Error encoding image: %v\n", err)
+		}
 
 	case "model:train":
 		goodSubjects := []string{
@@ -209,5 +234,5 @@ func main() {
 }
 
 func usage() string {
-	return fmt.Sprintf("Usage: %s <sspsp|sspsp:detailed [year]|cetesb|news|news:filtered|model:train|model:test [text]>", os.Args[0])
+	return fmt.Sprintf("Usage: %s <sspsp|sspsp:table|sspsp:detailed [year]|cetesb|news|news:filtered|model:train|model:test [text]>", os.Args[0])
 }
