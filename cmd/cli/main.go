@@ -108,7 +108,7 @@ func main() {
 			"festa do", "fim de semana", "feira",
 		}
 		badSubjects := []string{
-			"acidente", "violencia", "morre aos", "morte", "encontrada morta", "encontrado morto", "assassinato", "roubo", "furta", "furto", "incendio", "atropela", "apreensão", "cachorro", "sexual", "mutilada", "mutilado", "agredida", "agredido", "sem vida", "asfixiou", "em coma", "desaparecido", "desaparecida", "são mortos",
+			"acidente", "violencia", "morre aos", "morte", "encontrada morta", "encontrado morto", "assassinato", "roubo", "furta", "furto", "incendio", "atropela", "apreensão", "cachorro", "sexual", "mutilada", "mutilado", "agredida", "agredido", "sem vida", "asfixiou", "em coma", "desaparecido", "desaparecida", "são mortos", "tragédia",
 			"quadrilha trafico", "confusão", "agressão", "polícia suspeita", "drogas", "armas", "tiroteio", "assalto", "sequestro", "explosão", "criminoso", "bolsonaro", "lula",
 			"taubaté", "jacareí", "rio de janeiro",
 			"tecnico de", "copa américa", "brasileirão", "copa de clubes", "fifa",

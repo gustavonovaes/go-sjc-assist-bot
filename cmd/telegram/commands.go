@@ -140,7 +140,7 @@ func CommandLastNews(message *telegram.WebhookMessage, modelPath string, limit i
 
 	for _, newsItem := range filteredNews {
 		text += fmt.Sprintf(
-			"<a href='%s'>%s %s</a>\n\n",
+			"<a href=\"%s\">%s %s</a>\n",
 			newsItem.Link,
 			newsItem.Title,
 			newsItem.Content,
