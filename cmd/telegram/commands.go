@@ -18,31 +18,31 @@ const MUNICIPALITY_ID = 560  // MUNICIPALITY_ID is the municipality ID for São 
 
 func CommandStart(message *telegram.WebhookMessage) error {
 	text := `
-👋 <b>Bem-vindo(a)!</b>
+👋 *Bem-vindo(a)!*
 Eu sou o assistente virtual da Cidade de São José dos Campos. Estou aqui para te ajudar com algumas informações sobre a cidade.
 
-<b>Comandos disponíveis:</b>
-/start, /ajuda - Inicia a conversa com o bot
-/sobre - Exibe informações sobre o bot
+*Comandos disponíveis:*
+- /start, /ajuda - Inicia a conversa com o bot.
+- /sobre - Exibe informações sobre o bot.
 
-<b>🌱 CETESB</b>
-/qualidadeAr - Exibe o índice de qualidade do ar da cidade via CETESB
+*🌱 CETESB*
+- /qualidadeAr - Exibe o índice de qualidade do ar da cidade via CETESB.
 
-<b>🚔 SSP-SP</b>
-/crimes - Exibe o total de crimes registrados na cidade nos últimos anos
-/mapaCrimes - Exibe link para o mapa com as marcações dos crimes registrados no último semestre
+*🚔 SSP-SP*
+- /crimes - Exibe o total de crimes registrados na cidade nos últimos anos.
+- /mapaCrimes - Exibe link para o mapa com as marcações dos crimes registrados no último semestre.
 
-<b>📰 Notícias</b>
-/ultimasNoticias - Exibe as últimas notícias da cidade dos principais portais
+*📰 Notícias*
+- /ultimasNoticias - Exibe as últimas notícias da cidade dos principais portais.
 	`
 
 	return telegram.SendMessage(message.Chat.ID, text)
 }
 
 func CommandAbout(message *telegram.WebhookMessage) error {
-	text := `Este bot foi desenvolvido por <a href="https://gustavonovaes.dev">Gustavo Novaes</a> para auxiliar a população de São José dos Campos. Ele fornece informações úteis sobre a cidade de forma prática e automatizada, utilizando os serviços de chat do Telegram e Discord.
+	text := `Este bot foi desenvolvido por [Gustavo Novaes](https://gustavonovaes.dev) para auxiliar a população de São José dos Campos. Ele fornece informações úteis sobre a cidade de forma prática e automatizada, utilizando os serviços de chat do Telegram e Discord.
 
-Se você tiver sugestões ou encontrar problemas, entre em contato ou contribua no repositório do projeto no GitHub: <a href="https://github.com/GustavoNovaes/go-sjc-assist-bot">github.com/GustavoNovaes/go-sjc-assist-bot</a>.`
+Se você tiver sugestões ou encontrar problemas, entre em contato ou contribua no repositório do projeto no GitHub: [github.com/GustavoNovaes/go-sjc-assist-bot](https://github.com/GustavoNovaes/go-sjc-assist-bot).`
 	return telegram.SendMessage(message.Chat.ID, text)
 }
 
@@ -64,7 +64,7 @@ func CommandQualityAir(message *telegram.WebhookMessage) error {
 	return telegram.SendMessage(
 		message.Chat.ID,
 		fmt.Sprintf(
-			`<b>Indice qualidade do Ar:</b>\n%.0f - %s\n`,
+			`*Indice qualidade do Ar:*\n%.0f - %s\n`,
 			res.Features[0].Attributes.Indice,
 			res.Features[0].Attributes.Qualidade,
 		),
@@ -82,7 +82,7 @@ func CommandCrimes(message *telegram.WebhookMessage) error {
 	}
 
 	text := fmt.Sprintf(
-		"<b>Total de Crimes nos últimos anos - São José dos Campos:</b>\n <code>%s</code>",
+		"*Total de Crimes nos últimos anos - São José dos Campos:*\n ```\n%s\n```",
 		sspsp.GenerateCrimeStatisticsTable(data[:10]),
 	)
 
@@ -91,13 +91,13 @@ func CommandCrimes(message *telegram.WebhookMessage) error {
 
 func CommandMapCrimes(message *telegram.WebhookMessage) error {
 	text := `
-<b>🗺️ Mapa de Crimes</b>
+*🗺️ Mapa de Crimes*
 Mapa com marcações dos crimes registrados na cidade no primeiro semestre de 2025.
 
 Link para o mapa: 
 https://www.google.com/maps/d/viewer?mid=1Z-LoxrmX55O5_Odo1lRXoCcs5TOXifs
 
-Os dados criminais foram obtidos através do <b>Portal Transparência - Números sem Mistério</b> da SSP-SP. Link para o portal:
+Os dados criminais foram obtidos através do *Portal Transparência - Números sem Mistério* da SSP-SP. Link para o portal:
 https://www.ssp.sp.gov.br/estatistica/consultas
 	`
 
@@ -133,21 +133,25 @@ func CommandLastNews(message *telegram.WebhookMessage, modelPath string, limit i
 		}
 	}
 
-	text := "<b>📰 Últimas Notícias</b>\n\n"
+	text := "*📰 Últimas Notícias*\n\n"
 	if len(filteredNews) == 0 {
-		text += "<b>Nenhuma notícia encontrada.</b>"
+		text += "*Nenhuma notícia encontrada.*"
 	}
 
 	for _, newsItem := range filteredNews {
 		text += fmt.Sprintf(
-			"<a href=\"%s\">%s %s</a>\n",
-			newsItem.Link,
+			"[%s](%s) %s\n",
 			newsItem.Title,
+			newsItem.Link,
 			newsItem.Content,
 		)
 	}
 
-	text += `\nFontes: <a href='https://www.meon.com.br/noticias/rmvale'>Meon</a>, <a href='https://sampi.net.br/ovale/categoria/ultimas'>Sampi</a>`
+	text += `\nFontes: [Meon](https://www.meon.com.br/noticias/rmvale), [Sampi](https://sampi.net.br/ovale/categoria/ultimas)`
+
+	if limit > 0 && len(filteredNews) > limit {
+		text += fmt.Sprintf("\n\n*Exibindo apenas as primeiras %d notícias filtradas.*", limit)
+	}
 
 	return telegram.SendMessage(message.Chat.ID, text)
 }
