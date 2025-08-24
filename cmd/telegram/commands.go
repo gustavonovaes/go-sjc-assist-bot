@@ -88,7 +88,7 @@ func CommandCrimes(message *telegram.WebhookMessage) error {
 }
 
 func CommandMapCrimes(message *telegram.WebhookMessage) error {
-	text := `*🗺️ Mapa de Crimes*
+	text := `🗺️ *Mapa de Crimes*
 
 Mapa com marcações dos crimes registrados na cidade no primeiro semestre de 2025.
 
@@ -97,7 +97,7 @@ https://www.google.com/maps/d/viewer?mid=1Z-LoxrmX55O5_Odo1lRXoCcs5TOXifs
 
 - Os dados criminais foram obtidos através do *Portal Transparência - Números sem Mistério* da SSP-SP. Link para o portal:
 https://www.ssp.sp.gov.br/estatistica/consultas
-	`
+`
 
 	return telegram.SendMessage(message.Chat.ID, text)
 }
