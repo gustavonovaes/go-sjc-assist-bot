@@ -51,7 +51,8 @@ func NewWebhookServer(commandHandlers map[string]Command, middlewareFunc func(We
 		err := handleWebhookRequest(r)
 		if err != nil {
 			log.Printf("ERROR: Failed to handle webhook request: %v", err)
-			http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK)
+			// http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
 			return
 		}
 

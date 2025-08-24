@@ -17,23 +17,21 @@ const QUALAR_STATION_ID = 49 // QUALAR_STATION_ID is the default station ID for 
 const MUNICIPALITY_ID = 560  // MUNICIPALITY_ID is the municipality ID for São José dos Campos
 
 func CommandStart(message *telegram.WebhookMessage) error {
-	text := `
-👋 *Bem-vindo(a)!*
-Eu sou o assistente virtual da Cidade de São José dos Campos. Estou aqui para te ajudar com algumas informações sobre a cidade.
+	text := `👋 Olá! Eu sou um assistente virtual da Cidade de São José dos Campos. Estou aqui para te ajudar com algumas informações sobre a cidade.
 
 *Comandos disponíveis:*
-- /start, /ajuda - Inicia a conversa com o bot.
-- /sobre - Exibe informações sobre o bot.
+- /start, /ajuda: Inicia a conversa com o bot.
+- /sobre: Exibe informações sobre o bot.
 
 *🌱 CETESB*
-- /qualidadeAr - Exibe o índice de qualidade do ar da cidade via CETESB.
+- /qualidadeAr: Exibe o índice de qualidade do ar da cidade via CETESB.
 
 *🚔 SSP-SP*
-- /crimes - Exibe o total de crimes registrados na cidade nos últimos anos.
-- /mapaCrimes - Exibe link para o mapa com as marcações dos crimes registrados no último semestre.
+- /crimes: Exibe o total de crimes registrados na cidade nos últimos anos.
+- /mapaCrimes: Exibe link para o mapa com as marcações dos crimes registrados no último semestre.
 
 *📰 Notícias*
-- /ultimasNoticias - Exibe as últimas notícias da cidade dos principais portais.
+- /ultimasNoticias: Exibe as últimas notícias da cidade dos principais portais.
 	`
 
 	return telegram.SendMessage(message.Chat.ID, text)
@@ -90,14 +88,14 @@ func CommandCrimes(message *telegram.WebhookMessage) error {
 }
 
 func CommandMapCrimes(message *telegram.WebhookMessage) error {
-	text := `
-*🗺️ Mapa de Crimes*
+	text := `*🗺️ Mapa de Crimes*
+
 Mapa com marcações dos crimes registrados na cidade no primeiro semestre de 2025.
 
-Link para o mapa: 
+- Link para o mapa: 
 https://www.google.com/maps/d/viewer?mid=1Z-LoxrmX55O5_Odo1lRXoCcs5TOXifs
 
-Os dados criminais foram obtidos através do *Portal Transparência - Números sem Mistério* da SSP-SP. Link para o portal:
+- Os dados criminais foram obtidos através do *Portal Transparência - Números sem Mistério* da SSP-SP. Link para o portal:
 https://www.ssp.sp.gov.br/estatistica/consultas
 	`
 
@@ -140,7 +138,7 @@ func CommandLastNews(message *telegram.WebhookMessage, modelPath string, limit i
 
 	for _, newsItem := range filteredNews {
 		text += fmt.Sprintf(
-			"[%s](%s) %s\n",
+			"- [%s](%s) %s\n",
 			newsItem.Title,
 			newsItem.Link,
 			newsItem.Content,
